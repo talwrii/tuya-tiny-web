@@ -4,9 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tuya-tiny-web"
-version = "1.5.0"
+version = "1.6.0"
 description = "A tiny web interface for Tuya devices"
 dependencies = [ "flask>=2.0", "tinytuya>=0.5",]
+readme = "README.md"
 [[project.authors]]
 name = "@readwithai"
 email = "talwrii@github.com"
