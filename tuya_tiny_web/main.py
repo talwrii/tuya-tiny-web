@@ -132,6 +132,33 @@ def toggle(dev_id):
         d.turn_on()
         return jsonify({"result": "Device toggled ON"})
 
+@app.route("/list", methods=["GET"])
+def list_devices():
+    # Return all devices with their IPs and info
+    load_devices()
+    result = {}
+    for dev_id, info in devices.items():
+        ip = device_ips.get(dev_id, "unknown")
+        result[dev_id] = {
+            "name": info.get("name"),
+            "version": info.get("version"),
+            "ip": ip,
+        }
+    return jsonify(result)
+
+@app.route("/docs", methods=["GET"])
+def docs():
+    routes_info = [
+        {"method": "GET", "path": "/list", "description": "List all devices and their IPs"},
+        {"method": "POST", "path": "/scan", "description": "Trigger a manual device scan"},
+        {"method": "GET", "path": "/<dev_id>/state", "description": "Get device status"},
+        {"method": "GET", "path": "/<dev_id>/on", "description": "Check if device is on"},
+        {"method": "POST", "path": "/<dev_id>/on", "description": "Turn device on"},
+        {"method": "POST", "path": "/<dev_id>/off", "description": "Turn device off"},
+        {"method": "POST", "path": "/<dev_id>/toggle", "description": "Toggle device state"},
+        {"method": "GET", "path": "/docs", "description": "Show API documentation"},
+    ]
+    return jsonify({"routes": routes_info})
 
 def main():
     global devices_file
@@ -159,15 +186,16 @@ See README https://github.com/talwrii/tuya-tiny-web for details on obtaining loc
 
     threading.Thread(target=scan_devices_periodically, daemon=True).start()
 
-
     if args.unix_socket and ('--port' in sys.argv or '--host' in sys.argv):
         raise Exception('Either use --unix-socket or --host and --port, not both')
 
     load_devices()
 
     if args.unix_socket:
+        print(f"API documentation available at unix socket {args.unix_socket}/docs")
         app.run(host='unix://' + args.unix_socket)
     else:
+        print(f"API documentation available at http://{args.host}:{args.port}/docs")
         app.run(host=args.host, port=args.port)
 
     print(f"Serving on {'unix socket ' + args.unix_socket if args.unix_socket else f'{args.host}:{args.port}'}")

@@ -10,7 +10,7 @@ One approach is to flash these devices with open firmware, but this doesn't alwa
 
 *This app* addresses a few annoyances with using tinytuya. First, if you use DHCP, you are not guaranteed to have a fixed IP address. You *could* configure your DHCP server to assign a fixed IP based on a device's MAC address, but this requires understanding your DHCP server, and I prefer to avoid using IP addresses or DNS entirely. This service periodically scans your network for Tuya devices and maps their fixed device IDs to current IP addresses.
 
-Second, this app allows you to assign friendly names to your devices, making code easier to understand. Third, it handles secrets for IoT devices, consolidating separate credentials into an HTTP endpoint that you can secure as needed.
+Secondly, this app allows you to assign friendly names to your devices, making code easier to understand. Thirdly, it handles secrets for IoT devices, consolidating separate credentials into an HTTP endpoint that you can secure as needed.
 
 ## Alternatives and Prior Work
 This is a thin wrapper around [tinytuya](https://github.com/jasonacox/tinytuya). Tools like [Tuya Convert](https://github.com/ct-Open-Source/tuya-convert) allow you to flash *some* Tuya hardware with the [Tasmota](https://github.com/arendst/Tasmota) mini-operating system, which supports local device configuration.
@@ -52,7 +52,7 @@ Where:
 
 Unfortunately, the developer portal does not tend to provide version info, but the version  can only take a limited number of values so you can try different versions until one works. At the time the values that this could take is: `3.1`, `3.2`, `3.3`, `3.4`, `3.5`.
 
-You can then run `tuya-tiny-web` to start. You can use the `--unix-socket` option for a unix domain socket which can be used to easily control access to the daemon using file permissions. Note that the socket is remade each run so you will have to update the socket permissions each run unless you are using a default group or umask.
+You can then run `tuya-tiny-web` to start the daemon. If you use the `--unix-socket` option you can create a unix domain socket which can be used to easily control access to the daemon using file permissions. Note that the socket is remade each run so you will have to update the socket permissions each run unless you are using a default group or umask.
 
 ## Getting local keys from the Tuya Developer portal
 Getting the local keys out of the Tuya Developer portal is quite an annoying process with hidden GUI controls and out of data documentation from websites. I shall describe the process at the time of writing, but this may be out of date when you come to use the time.
