@@ -60,7 +60,7 @@ def scan_devices_periodically():
             scan_devices()
         time.sleep(300)  # scan every 5 mins
 
-@app.before_first_request
+@app.before_request
 def startup():
     # Start device scan thread
     threading.Thread(target=scan_devices_periodically, daemon=True).start()
