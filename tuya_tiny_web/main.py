@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 # Global state for devices: dev_id -> {name, version, ip}
 devices = {}
-device_ips = {} # dev_id -> ip
+device_ips = {}  # dev_id -> ip
 scan_lock = threading.Lock()  # Lock for scan to ensure only one scan at a time
 scanning = False  # Track if a scan is in progress
 devices_file = None  # Will be set from args
@@ -26,9 +26,18 @@ def load_devices():
     with open(devices_file) as f:
         devices = json.load(f)
 
-def get_device_instance(dev_id):
-    # Reload devices every request
+def resolve_device_id(identifier):
+    """Allow using either dev_id or friendly name."""
     load_devices()
+    if identifier in devices:
+        return identifier
+    for dev_id, info in devices.items():
+        if info.get("name") == identifier:
+            return dev_id
+    raise KeyError(f"No device found with id or name: {identifier}")
+
+def get_device_instance(identifier):
+    dev_id = resolve_device_id(identifier)
     info = devices[dev_id]
     return tinytuya.OutletDevice(dev_id, device_ips[dev_id], info["local_key"], version=info["version"])
 
@@ -46,7 +55,7 @@ def scan_devices():
         for info in results.values():
             if info["ip"] != device_ips.get(info["id"]):
                 print(f"New ip for device: {info['id']} -> {info['ip']}")
-                device_ips[info['id']] = info["ip"]
+                device_ips[info["id"]] = info["ip"]
         print("Done scanning")
     finally:
         scanning = False
@@ -144,8 +153,7 @@ See README https://github.com/talwrii/tuya-tiny-web for details on obtaining loc
     group.add_argument("--unix-socket", help="Unix domain socket path to bind the REST server")
     group.add_argument("--host", default="0.0.0.0", help="IP to bind the REST server")
 
-    parser.add_argument("--port", type=int, default=1024, help="Port for REST server (ignored with --unix
--socket)")
+    parser.add_argument("--port", type=int, default=1024, help="Port for REST server")
     parser.add_argument("--devices-file", default="tuya-devices.json", help="JSON file with device info")
 
     args = parser.parse_args()
@@ -153,7 +161,7 @@ See README https://github.com/talwrii/tuya-tiny-web for details on obtaining loc
 
     threading.Thread(target=scan_devices_periodically, daemon=True).start()
 
-    # Safety check - don't allow mixing unix socket and host/port
+
     if args.unix_socket and ('--port' in sys.argv or '--host' in sys.argv):
         raise Exception('Either use --unix-socket or --host and --port, not both')
 
@@ -164,8 +172,7 @@ See README https://github.com/talwrii/tuya-tiny-web for details on obtaining loc
     else:
         app.run(host=args.host, port=args.port)
 
-    print(f"Serving on {'unix socket ' + args.unix_socket if args.unix_socket else f'{args.host}:{args.po
-rt}'}")
+    print(f"Serving on {'unix socket ' + args.unix_socket if args.unix_socket else f'{args.host}:{args.port}'}")
 
 if __name__ == "__main__":
     main()
