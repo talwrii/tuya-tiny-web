@@ -17,6 +17,7 @@ app = Flask(__name__)
 devices = {}
 scan_lock = threading.Lock()  # Lock for scan to ensure only one scan at a time
 scanning = False  # Track if a scan is in progress
+devices_file = None  # Will be set from args
 
 def load_devices():
     global devices
@@ -39,13 +40,12 @@ def get_device_instance(dev_id, ip=None):
 def scan_devices():
     global scanning
     if scanning:
-        return False  # Don't start a scan if one is already running
+        return False
     scanning = True
 
     try:
-        results = tinytuya.deviceScan(False, 10)  # Scan for 10 seconds
-        # Instead of writing IPs back to file, update the in-memory devices dict
-        load_devices()  # Reload to get latest devices data
+        results = tinytuya.deviceScan(False, 10)  # Scan 10 sec
+        load_devices()  # Refresh devices from file
         for dev in results.values():
             dev_id = dev["id"]
             if dev_id in devices:
@@ -59,31 +59,30 @@ def scan_devices_periodically():
     while True:
         if not scanning:
             scan_devices()
-        time.sleep(300)  # scan every 5 mins
+        time.sleep(300)
 
 @app.before_request
 def startup():
-    # Start device scan thread
+    # Start scanning thread once on first request
     threading.Thread(target=scan_devices_periodically, daemon=True).start()
 
 @app.route("/scan", methods=["POST"])
 def manual_scan():
     if scan_lock.locked():
-        return jsonify({"error": "Scan is already in progress. Try again later."}), 400
+        return jsonify({"error": "Scan in progress"}), 400
 
     with scan_lock:
-        scan_result = scan_devices()
-        if scan_result:
-            return jsonify(scan_result)
+        result = scan_devices()
+        if result:
+            return jsonify(result)
         else:
-            return jsonify({"error": "Scan already in progress or failed"}), 500
+            return jsonify({"error": "Scan failed or in progress"}), 500
 
 @app.route("/<dev_id>/state", methods=["GET"])
 def get_state(dev_id):
     try:
         d = get_device_instance(dev_id)
-        status = d.status()
-        return jsonify(status)
+        return jsonify(d.status())
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -136,10 +135,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="""\
 tiny-tuya-rest server. Locally forward requests to a local server.
-Settings are read from a `tuya-devices.json` file which is a mapping from tuya device ideas to hashes with keys `name`, `VERSION` and `local_key`.
+Settings are read from a `tuya-devices.json` file mapping device IDs to info dicts.
 
-See the README for this project at https://github.com/talwrii/tuya-tiny-web for details of how to obtain the local_key.
-
+See README https://github.com/talwrii/tuya-tiny-web for details on obtaining local_key.
 """,
         epilog="@readwithai 📖 https://readwithai.substack.com/p/habits ⚡️ machine-aided reading ✒️"
     )
@@ -155,27 +153,18 @@ See the README for this project at https://github.com/talwrii/tuya-tiny-web for 
     args = parser.parse_args()
     devices_file = args.devices_file
 
-    if '--port' in sys.argv and args.unix_socket:
-        raise Exception('Either use --unix-socket or --host and --port')
-
-    if '--host' in sys.argv and args.unix_socket:
-        raise Exception('Either use --unix-socket or --host and --port')
+    # Safety check - don't allow mixing unix socket and host/port
+    if args.unix_socket and ('--port' in sys.argv or '--host' in sys.argv):
+        raise Exception('Either use --unix-socket or --host and --port, not both')
 
     load_devices()
 
     if args.unix_socket:
-        if os.path.exists(args.unix_socket):
-            os.unlink(args.unix_socket)
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        sock.bind(args.unix_socket)
-        sock.listen(5)
-        server = make_server(host=None, port=0, app=app)
-        server.socket = sock
+        app.run(host='unix://' + args.unix_socket)
     else:
-        server = make_server(host=args.host, port=args.port, app=app)
+        app.run(host=args.host, port=args.port)
 
     print(f"Serving on {'unix socket ' + args.unix_socket if args.unix_socket else f'{args.host}:{args.port}'}")
-    server.serve_forever()
 
 if __name__ == "__main__":
     main()
