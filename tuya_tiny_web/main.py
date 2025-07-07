@@ -133,8 +133,12 @@ def main():
     parser = argparse.ArgumentParser(
         description="""\
 tiny-tuya-rest server. Locally forward requests to a local server.
-Settings are read from a `tuya-devices.json` file which is a mapping from tuya device ideas to hases with keys `name`, `version` and `local_key`.\
-""")
+Settings are read from a `tuya-devices.json` file which is a mapping from tuya device ideas to hases with keys `name`, `version` and `local_key`.
+
+See the README for this project at https://github.com/talwrii/tuya-tiny-web for details of how to obtain the local_key.
+
+""",
+epilog="@readwithai 📖 https://readwithai.substack.com/p/habits ⚡️ machine-aided reading ✒️")
     parser.add_argument("--host", default="0.0.0.0", help="IP to bind the REST server")
     parser.add_argument("--port", type=int, default=1024, help="Port for REST server")
     parser.add_argument("--devices-file", default="tuya-device.json", help="JSON file with device info (details to tuya-devices.json in the current directory)")
