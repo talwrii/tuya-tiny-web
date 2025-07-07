@@ -6,11 +6,9 @@ import threading
 import time
 import json
 import os
-import socket
 import tinytuya
 import functools
-from flask import Flask, jsonify, request
-from werkzeug.serving import make_server
+from flask import Flask, jsonify
 
 app = Flask(__name__)
 
