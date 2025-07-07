@@ -52,6 +52,8 @@ Where:
 
 Unfortunately, the developer portal does not tend to provide version info, but the version  can only take a limited number of values so you can try different versions until one works. At the time the values that this could take is: `3.1`, `3.2`, `3.3`, `3.4`, `3.5`.
 
+You can then run `tuya-tiny-web` to start. You can use the `--unix-socket` option for a unix domain socket which can be used to easily control access to the daemon using file permissions. Note that the socket is remade each run so you will have to update the socket permissions each run unless you are using a default group or umask.
+
 ## Getting local keys from the Tuya Developer portal
 Getting the local keys out of the Tuya Developer portal is quite an annoying process with hidden GUI controls and out of data documentation from websites. I shall describe the process at the time of writing, but this may be out of date when you come to use the time.
 

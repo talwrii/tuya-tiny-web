@@ -4,6 +4,7 @@ import argparse
 import threading
 import time
 import json
+import os
 import tinytuya
 from flask import Flask, jsonify, request
 
@@ -40,15 +41,12 @@ def scan_devices():
 
     try:
         results = tinytuya.deviceScan(False, 10)  # Scan for 10 seconds
-        # Update devices with IPs from scan results
-        with open("tuya_devices.json", "r+") as f:
-            data = json.load(f)
-            for dev in results.values():
-                dev_id = dev["id"]
-                if dev_id in data:
-                    data[dev_id]["ip"] = dev["ip"]
-            f.seek(0)
-            json.dump(data, f, indent=4)
+        # Instead of writing IPs back to file, update the in-memory devices dict
+        load_devices()  # Reload to get latest devices data
+        for dev in results.values():
+            dev_id = dev["id"]
+            if dev_id in devices:
+                devices[dev_id]["ip"] = dev["ip"]
         # Return the devices with updated IPs
         return {dev_id: devices[dev_id] for dev_id in results}
     finally:
@@ -133,20 +131,37 @@ def main():
     parser = argparse.ArgumentParser(
         description="""\
 tiny-tuya-rest server. Locally forward requests to a local server.
-Settings are read from a `tuya-devices.json` file which is a mapping from tuya device ideas to hases with keys `name`, `version` and `local_key`.
+Settings are read from a `tuya-devices.json` file which is a mapping from tuya device ideas to hashes with keys `name`, `VERSION` and `local_key`.
 
 See the README for this project at https://github.com/talwrii/tuya-tiny-web for details of how to obtain the local_key.
 
 """,
-epilog="@readwithai 📖 https://readwithai.substack.com/p/habits ⚡️ machine-aided reading ✒️")
-    parser.add_argument("--host", default="0.0.0.0", help="IP to bind the REST server")
-    parser.add_argument("--port", type=int, default=1024, help="Port for REST server")
-    parser.add_argument("--devices-file", default="tuya-device.json", help="JSON file with device info (details to tuya-devices.json in the current directory)")
+        epilog="@readwithai 📖 https://readwithai.substack.com/p/habits ⚡️ machine-aided reading ✒️"
+    )
+
+    # Mutually exclusive group for unix socket vs host (port is ignored if unix-socket)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--unix-socket", help="Unix domain socket path to bind the REST server")
+    group.add_argument("--host", default="0.0.0.0", help="IP to bind the REST server")
+
+    parser.add_argument("--port", type=int, default=1024, help="Port for REST server (ignored with --unix-socket)")
+    parser.add_argument("--devices-file", default="tuya_devices.json", help="JSON file with device info (details to tuya-devices.json in the current directory)")
     args = parser.parse_args()
 
     load_devices(args.devices_file)
 
-    app.run(host=args.host, port=args.port, threaded=True)
+    if args.unix_socket:
+        # Remove existing socket if it exists
+        if os.path.exists(args.unix_socket):
+            os.unlink(args.unix_socket)
+
+        # Run Flask on the Unix socket (Flask 2.3+ supports unix_socket param)
+        app.run(unix_socket=args.unix_socket, threaded=True)
+
+        # Set socket permissions, adjust as needed
+        os.chmod(args.unix_socket, 0o777)
+    else:
+        app.run(host=args.host, port=args.port, threaded=True)
 
 if __name__ == "__main__":
     main()
