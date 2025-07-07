@@ -15,6 +15,44 @@ Second, this app allows you to assign friendly names to your devices, making cod
 ## Alternatives and Prior Work
 This is a thin wrapper around [tinytuya](https://github.com/jasonacox/tinytuya). Tools like [Tuya Convert](https://github.com/ct-Open-Source/tuya-convert) allow you to flash *some* Tuya hardware with the [Tasmota](https://github.com/arendst/Tasmota) mini-operating system, which supports local device configuration.
 
+## Installation
+
+You can install tuya-tiny-web with [pipx](https://github.com/pypa/pipx):
+
+```bash
+pipx install tuya-tiny-web
+```
+
+## Usage
+First set up your devices to connect to your local network with tuya by configuring them from the Smart Tuya app. Unfortunately, this requires the network you connect to to be able to communicate with the internet, after you have configured your devices you can detach this network from the internet.
+
+You then need to obtain the *local key* for each device. This can be done through the [Tuya developer interface](#tuya-developer). Once you have obtained both the device id and the local keys for all the devices you want to connect you must create a tuya devices file normally `tuya-devices.json` in the current directory - but see the --devices-flag.
+
+This file has the following form:
+
+```json
+{
+  "1234567890abcdef": {
+    "name": "Living Room Lamp",
+    "local_key": "XXXXXXXXX",
+    "version": "3.3"
+  },
+  "abcdef1234567890": {
+    "name": "Heater",
+    "local_key": "XXXXXXXX",
+    "version": "3.4"
+  }
+}
+```
+
+Where:
+
+`name` is a user-defined label for easier reference (optional).
+`local_key` is secret key used to authenticate with the device (required).
+`version` is the Tuya protocol version ("3.3", "3.4", etc). (required)
+
+Unfortunately, the developer portal does not tend to provide version info, but the version  can only take a limited number of values so you can try different versions until one works. At the time the values that this could take is: `3.1`, `3.2`, `3.3`, `3.4`, `3.5`.
+
 ## Caveats
 Note that IoT devices can make you dependent on the power grid and Wi-Fi connections; this tool doesn't address that dependency.
 

@@ -130,10 +130,14 @@ def toggle(dev_id):
         return jsonify({"error": str(e)}), 500
 
 def main():
-    parser = argparse.ArgumentParser(description="tiny-tuya-rest server")
+    parser = argparse.ArgumentParser(
+        description="""\
+tiny-tuya-rest server. Locally forward requests to a local server.
+Settings are read from a `tuya-devices.json` file which is a mapping from tuya device ideas to hases with keys `name`, `version` and `local_key`.\
+""")
     parser.add_argument("--host", default="0.0.0.0", help="IP to bind the REST server")
     parser.add_argument("--port", type=int, default=1024, help="Port for REST server")
-    parser.add_argument("--devices-file", default="tuya_devices.json", help="JSON file with device info")
+    parser.add_argument("--devices-file", default="tuya-device.json", help="JSON file with device info (details to tuya-devices.json in the current directory)")
     args = parser.parse_args()
 
     load_devices(args.devices_file)
