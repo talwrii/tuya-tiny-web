@@ -15,9 +15,9 @@ devices = {}
 scan_lock = threading.Lock()  # Lock for scan to ensure only one scan at a time
 scanning = False  # Track if a scan is in progress
 
-def load_devices(filename="tuya_devices.json"):
+def load_devices():
     global devices
-    with open(filename) as f:
+    with open(devices_file) as f:
         devices = json.load(f)
 
 def get_device_instance(dev_id, ip=None):
@@ -128,6 +128,8 @@ def toggle(dev_id):
         return jsonify({"error": str(e)}), 500
 
 def main():
+    global devices_file
+
     parser = argparse.ArgumentParser(
         description="""\
 tiny-tuya-rest server. Locally forward requests to a local server.
@@ -145,21 +147,23 @@ See the README for this project at https://github.com/talwrii/tuya-tiny-web for 
     group.add_argument("--host", default="0.0.0.0", help="IP to bind the REST server")
 
     parser.add_argument("--port", type=int, default=1024, help="Port for REST server (ignored with --unix-socket)")
-    parser.add_argument("--devices-file", default="tuya_devices.json", help="JSON file with device info (details to tuya-devices.json in the current directory)")
-    args = parser.parse_args()
+    parser.add_argument("--devices-file", default="tuya-devices.json", help="JSON file with device info")
 
-    load_devices(args.devices_file)
+    args = parser.parse_args()
+    devices_file = args.devices_file
+
+    if args.port and args.unix_socket:
+        raise Exception('Either use --unix-socket or --host and --port')
+
+   if args.host and args.unix_socket:
+        raise Exception('Either use --unix-socket or --host and --port')
+
+    load_devices()
 
     if args.unix_socket:
-        # Remove existing socket if it exists
         if os.path.exists(args.unix_socket):
             os.unlink(args.unix_socket)
-
-        # Run Flask on the Unix socket (Flask 2.3+ supports unix_socket param)
         app.run(unix_socket=args.unix_socket, threaded=True)
-
-        # Set socket permissions, adjust as needed
-        os.chmod(args.unix_socket, 0o777)
     else:
         app.run(host=args.host, port=args.port, threaded=True)
 
