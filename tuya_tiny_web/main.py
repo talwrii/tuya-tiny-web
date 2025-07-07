@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import argparse
 import threading
 import time
@@ -152,10 +153,10 @@ See the README for this project at https://github.com/talwrii/tuya-tiny-web for 
     args = parser.parse_args()
     devices_file = args.devices_file
 
-    if args.port and args.unix_socket:
+    if '--port' in sys.argv and args.unix_socket:
         raise Exception('Either use --unix-socket or --host and --port')
 
-    if args.host and args.unix_socket:
+    if '--host' in sys.argv and args.unix_socket:
         raise Exception('Either use --unix-socket or --host and --port')
 
     load_devices()
