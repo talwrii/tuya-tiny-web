@@ -53,6 +53,8 @@ def scan_devices():
                 if devices[dev_id].get("ip") != dev["ip"]:
                     print(f"New ip for device: {dev['id']} -> {dev['ip']}")
                     devices[dev_id]["ip"] = dev["ip"]
+            else:
+                print(f"Unconfigured device ({dev['id']}). Ignoring")
 
         print("Done scanning")
 
