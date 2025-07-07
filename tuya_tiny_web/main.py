@@ -155,7 +155,7 @@ See the README for this project at https://github.com/talwrii/tuya-tiny-web for 
     if args.port and args.unix_socket:
         raise Exception('Either use --unix-socket or --host and --port')
 
-   if args.host and args.unix_socket:
+    if args.host and args.unix_socket:
         raise Exception('Either use --unix-socket or --host and --port')
 
     load_devices()
