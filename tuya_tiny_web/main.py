@@ -44,13 +44,18 @@ def scan_devices():
     scanning = True
 
     try:
+        print("Scanning for devices...")
         results = tinytuya.deviceScan(False, 10)  # Scan 10 sec
         load_devices()  # Refresh devices from file
         for dev in results.values():
             dev_id = dev["id"]
             if dev_id in devices:
-                devices[dev_id]["ip"] = dev["ip"]
-        # Return the devices with updated IPs
+                if devices[dev_id].get("ip") != dev["ip"]:
+                    print(f"New ip for device: {dev['id']} -> {dev['ip']}")
+                    devices[dev_id]["ip"] = dev["ip"]
+
+        print("Done scanning")
+
         return {dev_id: devices[dev_id] for dev_id in results}
     finally:
         scanning = False
