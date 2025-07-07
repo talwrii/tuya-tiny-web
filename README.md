@@ -1,0 +1,30 @@
+# Tuya Tiny Web
+**@readwithai** - [X](https://x.com/readwithai) - [Blog](https://readwithai.substack.com/) - [Machine-Aided Reading](https://www.reddit.com/r/machineAidedReading/) - [📖](https://readwithai.substack.com/p/what-is-reading-broadly-defined) [⚡️](https://readwithai.substack.com/s/technical-miscellany) [🖋️](https://readwithai.substack.com/p/note-taking-with-obsidian-much-of)
+
+This is a wrapper around the [tinytuya](https://github.com/jasonacox/tinytuya) tool, which allows local access to Tuya Wi-Fi Internet of Things devices, such as power sockets and lightbulbs, without needing to connect to Tuya's cloud (except for initial setup).
+
+## Motivation
+Home automation is fun (though it requires some work in practice). Companies providing IoT devices often aim for ease of use, which involves connecting devices to their cloud infrastructure. However, the idea of someone else controlling my lightbulbs through an internet connection strikes me as a little insane, and it makes sense to want more control. Devices from these companies are often affordable, and you might buy them by mistake, so repurposing cloud-controlled IoT devices for local control is valuable.
+
+One approach is to flash these devices with open firmware, but this doesn't always work and can be a fiddly process. Instead, you can set up a device through the Tuya infrastructure and obtain credentials (specifically a local key) to use Tuya locally. This is what tinytuya enables.
+
+*This app* addresses a few annoyances with using tinytuya. First, if you use DHCP, you are not guaranteed to have a fixed IP address. You *could* configure your DHCP server to assign a fixed IP based on a device's MAC address, but this requires understanding your DHCP server, and I prefer to avoid using IP addresses or DNS entirely. This service periodically scans your network for Tuya devices and maps their fixed device IDs to current IP addresses.
+
+Second, this app allows you to assign friendly names to your devices, making code easier to understand. Third, it handles secrets for IoT devices, consolidating separate credentials into an HTTP endpoint that you can secure as needed.
+
+## Alternatives and Prior Work
+This is a thin wrapper around [tinytuya](https://github.com/jasonacox/tinytuya). Tools like [Tuya Convert](https://github.com/ct-Open-Source/tuya-convert) allow you to flash *some* Tuya hardware with the [Tasmota](https://github.com/arendst/Tasmota) mini-operating system, which supports local device configuration.
+
+## Caveats
+Note that IoT devices can make you dependent on the power grid and Wi-Fi connections; this tool doesn't address that dependency.
+
+Unfortunately, Tuya Wi-Fi devices must still be set up using their app and proprietary protocol before tinytuya can be used. This creates a dependency on Tuya's infrastructure, and your device may not be reconfigurable if Tuya ceases to exist, leaving it tied to a specific Wi-Fi network and password. I couldn't find a process that reverse-engineered the Tuya Wi-Fi pairing process (which is mediated by an initial Bluetooth connection).
+
+To avoid this, you can use [Zigbee](https://en.wikipedia.org/wiki/Zigbee) devices, flash firmware (if possible for your device), or choose devices that support app-free setup (some have automatic, physical button-driven Wi-Fi pairing).
+
+## About Me
+I am **@readwithai**. I create tools for reading, research, and agency, sometimes using the markdown editor [Obsidian](https://readwithai.substack.com/p/what-exactly-is-obsidian).
+
+I also share a [stream of tools](https://readwithai.substack.com/p/my-productivity-tools) related to my work.
+
+I write about various topics, including tools like this, on [X](https://x.com/readwithai). My [blog](https://readwithai.substack.com/) focuses more on reading, research, and agency.
