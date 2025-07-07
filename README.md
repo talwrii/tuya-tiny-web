@@ -16,7 +16,6 @@ Second, this app allows you to assign friendly names to your devices, making cod
 This is a thin wrapper around [tinytuya](https://github.com/jasonacox/tinytuya). Tools like [Tuya Convert](https://github.com/ct-Open-Source/tuya-convert) allow you to flash *some* Tuya hardware with the [Tasmota](https://github.com/arendst/Tasmota) mini-operating system, which supports local device configuration.
 
 ## Installation
-
 You can install tuya-tiny-web with [pipx](https://github.com/pypa/pipx):
 
 ```bash
@@ -24,7 +23,7 @@ pipx install tuya-tiny-web
 ```
 
 ## Usage
-First set up your devices to connect to your local network with tuya by configuring them from the Smart Tuya app. Unfortunately, this requires the network you connect to to be able to communicate with the internet, after you have configured your devices you can detach this network from the internet.
+First set up your devices to connect to your local network with Tuya by configuring them from the Smart Tuya app. Unfortunately, this requires the network you connect to to be able to communicate with the internet, after you have configured your devices you can detach this network from the internet.
 
 You then need to obtain the *local key* for each device. This can be done through the [Tuya developer interface](#tuya-developer). Once you have obtained both the device id and the local keys for all the devices you want to connect you must create a tuya devices file normally `tuya-devices.json` in the current directory - but see the --devices-flag.
 
@@ -52,6 +51,20 @@ Where:
 `version` is the Tuya protocol version ("3.3", "3.4", etc). (required)
 
 Unfortunately, the developer portal does not tend to provide version info, but the version  can only take a limited number of values so you can try different versions until one works. At the time the values that this could take is: `3.1`, `3.2`, `3.3`, `3.4`, `3.5`.
+
+## Getting local keys from the Tuya Developer portal
+Getting the local keys out of the Tuya Developer portal is quite an annoying process with hidden GUI controls and out of data documentation from websites. I shall describe the process at the time of writing, but this may be out of date when you come to use the time.
+
+1. Log into the Tuya Developer IoT portal
+2. Create a 'cloud project'. This is on the left hand side bar.
+3. Set the data center for this project by going to the page that lists projects clicking the ellipsis button and clicking edit. You must set the data center to match the are in which you installed the Smart Tuya app. The data centers are [listed here](https://github.com/tuya/tuya-home-assistant/wiki/Countries-Regions-and-Tuya-Data-Center).
+4. Go to `Devices > Link App Account`. Then scan the code provided in the Tuya Account with the Scan option that can be reached by pressing the button in the top left.
+5. You should then be able to see the device in the Manage Devices button for this linked account and copy the device id.
+6. The click on the cloud icon and go to API Explorer option
+7. Click on the `Query Device` api call and use the device id to obtain details.
+8. This will contain the local key.
+
+There also a *wizard* process for tinytuay which you may use.
 
 ## Caveats
 Note that IoT devices can make you dependent on the power grid and Wi-Fi connections; this tool doesn't address that dependency.
