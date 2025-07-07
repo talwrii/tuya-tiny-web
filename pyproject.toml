@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tuya-tiny-web"
+version = "0.1.0"
+description = "A tiny web interface for Tuya devices"
+authors = [
+  { name = "Your Name", email = "you@example.com" }
+]
+dependencies = [
+  "flask>=2.0",
+  "tinytuya>=0.5"
+]
+
+[project.scripts]
+tuya-tiny-web = "tuya_tiny_web.main:main"
