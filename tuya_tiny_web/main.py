@@ -6,8 +6,10 @@ import threading
 import time
 import json
 import os
+import socket
 import tinytuya
 from flask import Flask, jsonify, request
+from werkzeug.serving import make_server
 
 app = Flask(__name__)
 
@@ -51,11 +53,11 @@ def scan_devices():
         # Return the devices with updated IPs
         return {dev_id: devices[dev_id] for dev_id in results}
     finally:
-        scanning = False  # Reset scanning flag after the scan
+        scanning = False
 
 def scan_devices_periodically():
     while True:
-        if not scanning:  # Avoid running scan if it's already in progress
+        if not scanning:
             scan_devices()
         time.sleep(300)  # scan every 5 mins
 
@@ -70,9 +72,9 @@ def manual_scan():
         return jsonify({"error": "Scan is already in progress. Try again later."}), 400
 
     with scan_lock:
-        scan_result = scan_devices()  # Trigger manual scan
+        scan_result = scan_devices()
         if scan_result:
-            return jsonify(scan_result)  # Return the devices with updated IPs
+            return jsonify(scan_result)
         else:
             return jsonify({"error": "Scan already in progress or failed"}), 500
 
@@ -164,9 +166,16 @@ See the README for this project at https://github.com/talwrii/tuya-tiny-web for 
     if args.unix_socket:
         if os.path.exists(args.unix_socket):
             os.unlink(args.unix_socket)
-        app.run(unix_socket=args.unix_socket, threaded=True)
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.bind(args.unix_socket)
+        sock.listen(5)
+        server = make_server(host=None, port=0, app=app)
+        server.socket = sock
     else:
-        app.run(host=args.host, port=args.port, threaded=True)
+        server = make_server(host=args.host, port=args.port, app=app)
+
+    print(f"Serving on {'unix socket ' + args.unix_socket if args.unix_socket else f'{args.host}:{args.port}'}")
+    server.serve_forever()
 
 if __name__ == "__main__":
     main()
